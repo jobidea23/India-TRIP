@@ -1,0 +1,22 @@
+{
+  "rules": {
+    "driverLocations": {
+      "$uid": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.uid == $uid"
+      }
+    },
+    "rideRequests": {
+      "$bookingId": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    },
+    "tracking": {
+      "$bookingId": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    }
+  }
+}

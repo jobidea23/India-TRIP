@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brand-green: #16A34A;
+  --brand-blue: #2563EB;
+  --brand-navy: #111827;
+  --brand-light: #F8FAFC;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: Inter, system-ui, sans-serif;
+  background: #FFFFFF;
+  color: #111827;
+}
+
+* { box-sizing: border-box; }
+
+.btn-primary {
+  @apply bg-brand-green text-white font-semibold rounded-xl px-4 py-3 active:scale-95 transition;
+}
+.btn-secondary {
+  @apply bg-brand-blue text-white font-semibold rounded-xl px-4 py-3 active:scale-95 transition;
+}
+.card {
+  @apply bg-white rounded-2xl shadow-sm border border-gray-100;
+}
+.input {
+  @apply w-full border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-green;
+}
+
+/* Map container */
+.map-wrap { position: relative; width: 100%; height: 100%; }
+.map-wrap iframe, .map-wrap div { width: 100%; height: 100%; }
+
+/* Mobile bottom nav */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: white; border-top: 1px solid #e5e7eb;
+  display: flex; justify-content: space-around; padding: 8px 0;
+  z-index: 40;
+}
