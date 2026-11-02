@@ -1,7 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult } from "firebase/auth";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -21,6 +21,18 @@ export default function DriverAuth() {
   const setDriver = useAppStore((s) => s.setDriver);
   const setRole = useAppStore((s) => s.setRole);
 
+  useEffect(() => {
+    if (!auth) return;
+    getRedirectResult(auth).then((result) => {
+      if (result?.user) {
+        const u = result.user;
+        setGUser(u);
+        setForm((f) => ({ ...f, name: u.displayName || "" }));
+        setStep("register");
+      }
+    }).catch(() => {});
+  }, []);
+
   const googleLogin = async () => {
     try {
       if (!auth) {
@@ -33,12 +45,20 @@ export default function DriverAuth() {
         return;
       }
       const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const u = result.user;
-      setGUser(u);
-      setForm((f) => ({ ...f, name: u.displayName || "" }));
-      setStep("register");
-      toast.success("Signed in: " + (u.displayName || ""));
+      try {
+        const result = await signInWithPopup(auth, provider);
+        const u = result.user;
+        setGUser(u);
+        setForm((f) => ({ ...f, name: u.displayName || "" }));
+        setStep("register");
+        toast.success("Signed in: " + (u.displayName || ""));
+      } catch (e: any) {
+        if (e?.code === "auth/popup-blocked" || e?.code === "auth/popup-closed-by-user") {
+          await signInWithRedirect(auth, provider);
+        } else {
+          throw e;
+        }
+      }
     } catch (e: any) {
       toast.error(e?.message || "Login failed");
     }
@@ -62,7 +82,7 @@ export default function DriverAuth() {
     };
     setDriver(driver);
     setRole("driver");
-    toast.success("Registered & approved (demo)");
+    toast.success("Registered & approved");
     router.push("/driver");
   };
 
@@ -73,7 +93,10 @@ export default function DriverAuth() {
         <h2 className="text-2xl font-bold text-brand-navy mt-4 mb-1">Captain Login</h2>
         <p className="text-sm text-gray-500 mb-6">Sign in with Google to register</p>
         {step === "login" ? (
-          <Button className="w-full bg-brand-blue" onClick={googleLogin}>Sign in with Google</Button>
+          <>
+            <Button className="w-full bg-brand-blue" onClick={googleLogin}>Sign in with Google</Button>
+            <p className="text-xs text-gray-400 mt-3">If popup is blocked, you will be redirected to Google automatically.</p>
+          </>
         ) : (
           <>
             <div className="space-y-3">
@@ -84,13 +107,7 @@ export default function DriverAuth() {
                 <label className="text-xs text-gray-500">Vehicle category</label>
                 <div className="flex gap-2 mt-1">
                   {CATEGORIES.map((c) => (
-                    <button
-                      key={c}
-                      onClick={() => setForm({ ...form, category: c })}
-                      className={`flex-1 py-2 rounded-xl text-sm font-semibold capitalize ${form.category === c ? "bg-brand-blue text-white" : "bg-gray-100"}`}
-                    >
-                      {c}
-                    </button>
+                    <button key={c} onClick={() => setForm({ ...form, category: c })} className={`flex-1 py-2 rounded-xl text-sm font-semibold capitalize ${form.category === c ? "bg-brand-blue text-white" : "bg-gray-100"}`}>{c}</button>
                   ))}
                 </div>
               </div>

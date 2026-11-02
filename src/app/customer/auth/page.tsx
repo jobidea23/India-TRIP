@@ -1,12 +1,13 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult } from "firebase/auth";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Logo from "@/components/ui/Logo";
 import { auth } from "@/lib/firebase";
 import { useAppStore } from "@/store/useAppStore";
+import { getUserDoc, setUserDoc } from "@/lib/firestore";
 import toast from "react-hot-toast";
 
 export default function CustomerAuth() {
@@ -15,16 +16,42 @@ export default function CustomerAuth() {
   const setUser = useAppStore((s) => s.setUser);
   const setRole = useAppStore((s) => s.setRole);
 
-  const isFirebase = Boolean(auth);
+  const handleUser = async (u: any) => {
+    let existing: any = null;
+    try {
+      existing = await getUserDoc(u.uid);
+      if (!existing) {
+        const nu = { id: u.uid, phone: "", name: u.displayName || "", email: u.email || "", photoURL: u.photoURL || "", createdAt: Date.now() };
+        await setUserDoc(u.uid, nu);
+        existing = nu;
+      }
+    } catch (e) {
+      console.warn("Firestore user load failed", e);
+      existing = { id: u.uid, phone: "", name: u.displayName || "", email: u.email || "", photoURL: u.photoURL || "", createdAt: Date.now() };
+    }
+    const user = { id: u.uid, phone: existing?.phone || "", name: existing?.name || u.displayName || "", email: existing?.email || u.email || "", photoURL: existing?.photoURL || u.photoURL || "", home: existing?.home, work: existing?.work, createdAt: existing?.createdAt || Date.now() };
+    setUser(user);
+    setRole("customer");
+    toast.success("Welcome " + (u.displayName || ""));
+    if (!user.phone || !user.name) router.push("/customer/complete-profile");
+    else router.push("/customer");
+  };
+
+  // Handle redirect result (mobile / popup-blocked fallback)
+  useEffect(() => {
+    if (!auth) return;
+    getRedirectResult(auth).then((result) => {
+      if (result?.user) handleUser(result.user);
+    }).catch((e) => { if (e?.code !== "auth/popup-closed-by-user") toast.error(e?.message || "Login failed"); });
+  }, []);
 
   const googleLogin = async () => {
     setLoading(true);
     try {
       if (!auth) {
-        // Demo mode: simulate Google login
         await new Promise((r) => setTimeout(r, 600));
         const user = { id: "demo_google_user", phone: "", name: "Demo User", email: "demo@gmail.com", photoURL: "", createdAt: Date.now() };
-        setUser(user);
+        setUser(user as any);
         setRole("customer");
         toast.success("Signed in (demo)");
         if (!user.phone) router.push("/customer/complete-profile");
@@ -32,44 +59,17 @@ export default function CustomerAuth() {
         return;
       }
       const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const u = result.user;
-      // Load or create user doc in Firestore
-      let existing: any = null;
       try {
-        const { getUserDoc, setUserDoc } = await import("@/lib/firestore");
-        existing = await getUserDoc(u.uid);
-        if (!existing) {
-          const nu = {
-            id: u.uid,
-            phone: "",
-            name: u.displayName || "",
-            email: u.email || "",
-            photoURL: u.photoURL || "",
-            createdAt: Date.now(),
-          };
-          await setUserDoc(u.uid, nu);
-          existing = nu;
+        const result = await signInWithPopup(auth, provider);
+        await handleUser(result.user);
+      } catch (e: any) {
+        if (e?.code === "auth/popup-blocked" || e?.code === "auth/popup-closed-by-user") {
+          // Fallback to redirect (works on mobile / popup blockers)
+          await signInWithRedirect(auth, provider);
+        } else {
+          throw e;
         }
-      } catch (e) {
-        console.warn("Firestore user load failed", e);
-        existing = { id: u.uid, phone: "", name: u.displayName || "", email: u.email || "", photoURL: u.photoURL || "", createdAt: Date.now() };
       }
-      const user = {
-        id: u.uid,
-        phone: existing?.phone || "",
-        name: existing?.name || u.displayName || "",
-        email: existing?.email || u.email || "",
-        photoURL: existing?.photoURL || u.photoURL || "",
-        home: existing?.home,
-        work: existing?.work,
-        createdAt: existing?.createdAt || Date.now(),
-      };
-      setUser(user);
-      setRole("customer");
-      toast.success("Welcome " + (u.displayName || ""));
-      if (!user.phone || !user.name) router.push("/customer/complete-profile");
-      else router.push("/customer");
     } catch (e: any) {
       toast.error(e?.message || "Login failed");
     } finally {
@@ -86,9 +86,7 @@ export default function CustomerAuth() {
         <Button className="w-full" onClick={googleLogin} disabled={loading}>
           {loading ? "Signing in..." : "Sign in with Google"}
         </Button>
-        {!isFirebase && (
-          <p className="text-xs text-gray-400 mt-4">Demo mode: Google Sign-In simulated</p>
-        )}
+        <p className="text-xs text-gray-400 mt-4">If popup is blocked, you will be redirected to Google automatically.</p>
       </Card>
     </div>
   );
