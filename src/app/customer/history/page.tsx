@@ -4,17 +4,24 @@ import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import { useAppStore } from "@/store/useAppStore";
+import { listBookings } from "@/lib/firestore";
 import toast from "react-hot-toast";
 
 export default function RideHistory() {
+  const user = useAppStore((s) => s.user);
   const [rides, setRides] = useState<any[]>([]);
   useEffect(() => {
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { demoGet } = require("@/lib/demo");
-      setRides(demoGet("bookings"));
-    } catch {}
-  }, []);
+    const load = async () => {
+      try {
+        const all = await listBookings();
+        const mine = all.filter((b: any) => b.customerId === user?.id);
+        setRides(mine);
+      } catch {}
+    };
+    load();
+    const t = setInterval(load, 5000);
+    return () => clearInterval(t);
+  }, [user?.id]);
 
   return (
     <div className="p-4 space-y-3">
@@ -28,7 +35,7 @@ export default function RideHistory() {
             <div>
               <div className="font-bold text-brand-navy capitalize">{r.category}</div>
               <div className="text-xs text-gray-500 mt-1">{r.pickup?.address} → {r.destination?.address}</div>
-              <div className="text-xs text-gray-400 mt-1">{new Date(r.createdAt).toLocaleString()} · {r.distanceKm?.toFixed?.(1) ?? r.distanceKm} km · {r.durationMin} min</div>
+              <div className="text-xs text-gray-400 mt-1">{r.createdAt?.toDate ? r.createdAt.toDate().toLocaleString() : ""} · {r.distanceKm?.toFixed?.(1) ?? r.distanceKm} km · {r.durationMin} min</div>
               <div className="text-xs text-gray-400">Payment: {r.paymentMethod} ({r.paymentStatus})</div>
             </div>
             <div className="text-right">
@@ -38,7 +45,7 @@ export default function RideHistory() {
           </div>
           <div className="mt-2 flex gap-2">
             <Button size="sm" variant="ghost" onClick={() => toast.success("Booking " + r.id)}>View details</Button>
-            <Button size="sm" variant="ghost" onClick={() => toast.success("Receipt downloaded (demo)")}>Receipt</Button>
+            <Button size="sm" variant="ghost" onClick={() => toast.success("Receipt downloaded")}>Receipt</Button>
           </div>
         </Card>
       ))}

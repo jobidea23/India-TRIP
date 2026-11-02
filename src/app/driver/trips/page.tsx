@@ -4,24 +4,22 @@ import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
 import { IndianRupee, MapPin, Navigation, Clock } from "lucide-react";
 import { useAppStore } from "@/store/useAppStore";
+import { listBookings } from "@/lib/firestore";
 
 export default function DriverTrips() {
   const driver = useAppStore((s) => s.driver);
   const [trips, setTrips] = useState<any[]>([]);
 
   useEffect(() => {
-    const load = () => {
+    const load = async () => {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const { demoGet } = require("@/lib/demo");
-        const all = demoGet("bookings");
-        // show rides accepted by this driver or all completed demo rides
-        const mine = all.filter((b: any) => b.status === "completed" || b.status === "started" || b.driverId === driver?.id);
+        const all = await listBookings();
+        const mine = all.filter((b: any) => b.driverId === driver?.id);
         setTrips(mine.reverse());
       } catch {}
     };
     load();
-    const t = setInterval(load, 4000);
+    const t = setInterval(load, 5000);
     return () => clearInterval(t);
   }, [driver?.id]);
 
@@ -57,7 +55,7 @@ export default function DriverTrips() {
                 <span className="truncate">{t.destination?.address}</span>
               </div>
               <div className="flex items-center gap-2 text-xs text-gray-500 mt-2">
-                <Clock size={12} /> {new Date(t.createdAt).toLocaleString()}
+                <Clock size={12} /> {t.createdAt?.toDate ? t.createdAt.toDate().toLocaleString() : ""}
               </div>
               <div className="text-xs text-gray-500 mt-1">
                 {t.distanceKm?.toFixed?.(1) ?? t.distanceKm} km · {t.durationMin} min · {t.paymentMethod} · {t.paymentStatus}
