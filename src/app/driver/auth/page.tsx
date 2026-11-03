@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged } from "firebase/auth";
+import { GoogleAuthProvider, signInWithRedirect, getRedirectResult } from "firebase/auth";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -23,6 +23,14 @@ export default function DriverAuth() {
 
   useEffect(() => {
     if (!auth) return;
+    // If already logged in, go to register step
+    if (auth.currentUser) {
+      const u = auth.currentUser;
+      setGUser(u);
+      setForm((f) => ({ ...f, name: u.displayName || f.name || "" }));
+      setStep("register");
+      return;
+    }
     getRedirectResult(auth).then((result) => {
       if (result?.user) {
         const u = result.user;
@@ -36,14 +44,6 @@ export default function DriverAuth() {
         toast.error("Domain not authorized. Add this domain to Firebase Auth → Authorized domains.");
       }
     });
-    const unsubscribe = onAuthStateChanged(auth, (u) => {
-      if (u) {
-        setGUser(u);
-        setForm((f) => ({ ...f, name: u.displayName || f.name || "" }));
-        setStep("register");
-      }
-    });
-    return () => unsubscribe();
   }, []);
 
   const googleLogin = async () => {
