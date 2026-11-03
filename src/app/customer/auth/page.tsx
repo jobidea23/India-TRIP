@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { GoogleAuthProvider, signInWithRedirect, getRedirectResult } from "firebase/auth";
+import { GoogleAuthProvider, signInWithRedirect, getRedirectResult, onAuthStateChanged } from "firebase/auth";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Logo from "@/components/ui/Logo";
@@ -37,7 +37,7 @@ export default function CustomerAuth() {
     else router.push("/customer");
   };
 
-  // Handle redirect result (PC popup-blocked fallback) — one-time check only
+  // Handle redirect result
   useEffect(() => {
     if (!auth) return;
     // If already logged in, redirect to customer
@@ -46,13 +46,25 @@ export default function CustomerAuth() {
       return;
     }
     getRedirectResult(auth).then((result) => {
-      if (result?.user) handleUser(result.user);
+      if (result?.user) {
+        handleUser(result.user);
+      } else {
+        // No redirect result — check if user is logged in via auth state
+        // (handles case where redirect completed but getRedirectResult returned null)
+        if (!auth) return;
+        const unsubscribe = onAuthStateChanged(auth, (u) => {
+          if (u) handleUser(u);
+          unsubscribe();
+        });
+      }
     }).catch((e) => {
       console.error("Redirect result error:", e?.code, e?.message);
       if (e?.code === "auth/unauthorized-domain") {
         toast.error("Domain not authorized. Add indiatripnow.vercel.app to Firebase Auth → Authorized domains.");
-      } else if (e?.code !== "auth/popup-closed-by-user" && e?.code !== "auth/cancelled-popup-request") {
-        toast.error(e?.message || "Login failed");
+      } else if (e?.code === "auth/popup-closed-by-user" || e?.code === "auth/cancelled-popup-request") {
+        // User closed popup — do nothing
+      } else {
+        toast.error(e?.message || "Login failed. Check console for details.");
       }
     });
   }, []);

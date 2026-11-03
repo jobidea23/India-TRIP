@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { GoogleAuthProvider, signInWithRedirect, getRedirectResult } from "firebase/auth";
+import { GoogleAuthProvider, signInWithRedirect, getRedirectResult, onAuthStateChanged } from "firebase/auth";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -37,11 +37,24 @@ export default function DriverAuth() {
         setGUser(u);
         setForm((f) => ({ ...f, name: u.displayName || "" }));
         setStep("register");
+      } else {
+        // Fallback: listen for auth state change (catches redirect login)
+        if (!auth) return;
+        const unsubscribe = onAuthStateChanged(auth, (u) => {
+          if (u) {
+            setGUser(u);
+            setForm((f) => ({ ...f, name: u.displayName || f.name || "" }));
+            setStep("register");
+          }
+          unsubscribe();
+        });
       }
     }).catch((e) => {
       console.error("Redirect result error:", e?.code, e?.message);
       if (e?.code === "auth/unauthorized-domain") {
         toast.error("Domain not authorized. Add this domain to Firebase Auth → Authorized domains.");
+      } else if (e?.code !== "auth/popup-closed-by-user" && e?.code !== "auth/cancelled-popup-request") {
+        toast.error(e?.message || "Login failed");
       }
     });
   }, []);
