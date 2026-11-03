@@ -6,6 +6,8 @@ import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import { useAppStore } from "@/store/useAppStore";
+import { auth } from "@/lib/firebase";
+import { signOut } from "firebase/auth";
 import toast from "react-hot-toast";
 
 export default function Profile() {
@@ -26,7 +28,12 @@ export default function Profile() {
     toast.success("Profile updated");
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      if (auth) await signOut(auth);
+    } catch (e) {
+      console.error("Logout error:", e);
+    }
     setUser(null);
     setRole(null);
     router.push("/");

@@ -3,6 +3,8 @@ import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import { useAppStore } from "@/store/useAppStore";
+import { auth } from "@/lib/firebase";
+import { signOut } from "firebase/auth";
 import { useHydrated } from "@/hooks/useHydrated";
 import { LogOut } from "lucide-react";
 
@@ -31,7 +33,7 @@ export default function DriverProfile() {
         <h3 className="font-bold text-brand-navy">Bank Details</h3>
         <p className="text-sm text-gray-500">Not added. Add for payouts.</p>
       </Card>
-      <Button variant="danger" className="w-full" onClick={() => { setDriver(null); setRole(null); router.push("/"); }}>
+      <Button variant="danger" className="w-full" onClick={async () => { try { if (auth) await signOut(auth); } catch (e) { console.error("Logout error:", e); } setDriver(null); setRole(null); router.push("/"); }}>
         <LogOut size={16} className="inline mr-2" />Logout
       </Button>
     </div>
