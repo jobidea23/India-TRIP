@@ -62,6 +62,10 @@ export default function ActiveRide() {
   const verifyOtp = async () => {
     if (attempts >= 3) { toast.error("Too many attempts. Ride cancelled."); await updateBooking(booking.id, { status: "cancelled", cancelledBy: "system" }); return; }
     try {
+      // Debug: show driver ID and booking driverId
+      console.log("Driver ID:", driver?.id);
+      console.log("Booking driverId:", booking.driverId);
+      console.log("Auth UID:", (await import("firebase/auth")).getAuth().currentUser?.uid);
       const ok = await verifyOtpClient(booking.id, otp, booking.customerId);
       if (!ok) {
         setAttempts((a) => a + 1);
@@ -73,7 +77,7 @@ export default function ActiveRide() {
       toast.success("OTP verified. Trip started!");
     } catch (e: any) {
       console.error("OTP verify error:", e);
-      toast.error(e?.message || "Verification failed. Check permissions.");
+      toast.error("Permission error: " + (e?.code || e?.message || "unknown"));
     }
   };
 
