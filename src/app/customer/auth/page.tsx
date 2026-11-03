@@ -78,12 +78,16 @@ export default function CustomerAuth() {
   };
 
   return (
-    <div className="min-h-screen bg-brand-light flex items-center justify-center px-4">
-      <Card className="w-full max-w-md p-6 text-center">
-        <Logo />
-        <h2 className="text-2xl font-bold text-brand-navy mt-4 mb-1">Welcome to INDIA TRIP</h2>
-        <p className="text-sm text-gray-500 mb-6">Sign in with Google to continue</p>
-        <Button className="w-full" onClick={googleLogin} disabled={loading}>
+    <div className="min-h-screen bg-brand-light flex items-center justify-center px-4 relative overflow-hidden">
+      <div className="absolute top-0 left-0 w-96 h-96 bg-brand-green/10 rounded-full blur-3xl animate-float" />
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-brand-blue/10 rounded-full blur-3xl animate-float" style={{ animationDelay: "1s" }} />
+      <Card className="w-full max-w-md p-8 text-center relative z-10 animate-scale-in shadow-2xl">
+        <div className="animate-float">
+          <Logo />
+        </div>
+        <h2 className="text-2xl font-bold text-brand-navy mt-6 mb-1">Welcome to INDIA TRIP</h2>
+        <p className="text-sm text-gray-500 mb-8">Sign in with Google to continue</p>
+        <Button className="w-full btn-ripple py-4 text-lg" onClick={googleLogin} disabled={loading}>
           {loading ? "Signing in..." : "Sign in with Google"}
         </Button>
         <p className="text-xs text-gray-400 mt-4">If popup is blocked, you will be redirected to Google automatically.</p>
