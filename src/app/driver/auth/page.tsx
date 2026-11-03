@@ -58,26 +58,8 @@ export default function DriverAuth() {
         return;
       }
       const provider = new GoogleAuthProvider();
-      try {
-        const result = await signInWithPopup(auth, provider);
-        const u = result.user;
-        setGUser(u);
-        setForm((f) => ({ ...f, name: u.displayName || "" }));
-        setStep("register");
-        toast.success("Signed in: " + (u.displayName || ""));
-      } catch (e: any) {
-        console.error("Popup sign-in error:", e?.code, e?.message);
-        if (e?.code === "auth/unauthorized-domain") {
-          toast.error("Domain not authorized in Firebase. Add this domain to Firebase Auth → Authorized domains.");
-          return;
-        }
-        if (e?.code !== "auth/cancelled-popup-request") {
-          toast("Popup nahi khula, redirect use kar rahe hain...");
-          await signInWithRedirect(auth, provider);
-        } else {
-          throw e;
-        }
-      }
+      toast("Google login page pe redirect ho rahe hain...");
+      await signInWithRedirect(auth, provider);
     } catch (e: any) {
       toast.error(e?.message || "Login failed");
     }

@@ -72,25 +72,9 @@ export default function CustomerAuth() {
         return;
       }
       const provider = new GoogleAuthProvider();
-      try {
-        const result = await signInWithPopup(auth, provider);
-        await handleUser(result.user);
-      } catch (e: any) {
-        console.error("Popup sign-in error:", e?.code, e?.message);
-        // If domain not authorized, show clear error
-        if (e?.code === "auth/unauthorized-domain") {
-          toast.error("Domain not authorized in Firebase. Add this domain to Firebase Auth → Authorized domains.");
-          setLoading(false);
-          return;
-        }
-        // Fallback to redirect for any popup issue (blocked, closed, etc.)
-        if (e?.code !== "auth/cancelled-popup-request") {
-          toast("Popup nahi khula, redirect use kar rahe hain...");
-          await signInWithRedirect(auth, provider);
-        } else {
-          throw e;
-        }
-      }
+      // Use redirect directly (more reliable than popup on all browsers)
+      toast("Google login page pe redirect ho rahe hain...");
+      await signInWithRedirect(auth, provider);
     } catch (e: any) {
       toast.error(e?.message || "Login failed");
     } finally {
