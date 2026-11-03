@@ -63,9 +63,14 @@ export default function CustomerHome() {
   // Reverse geocode center via Nominatim (free)
   const reverseGeocode = async (loc: { lat: number; lng: number }) => {
     try {
-      const res = await fetch(`/api/geocode?reverse=1&lat=${loc.lat}&lon=${loc.lng}`);
+      const res = await fetch(`https://photon.komoot.io/reverse?lat=${loc.lat}&lon=${loc.lng}&limit=1`);
       const data = await res.json();
-      return data.display_name || "Selected location";
+      const f = data?.features?.[0];
+      if (f) {
+        const p = f.properties;
+        return [p.name, p.city, p.state, p.country].filter(Boolean).join(", ") || "Selected location";
+      }
+      return "Selected location";
     } catch {
       return "Selected location";
     }
@@ -84,9 +89,14 @@ export default function CustomerHome() {
     if (!searchQuery.trim()) return;
     setSearchingPlace(true);
     try {
-      const res = await fetch(`/api/geocode?q=${encodeURIComponent(searchQuery)}`);
+      const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(searchQuery)}&limit=8`);
       const data = await res.json();
-      setSearchResults(Array.isArray(data) ? data : []);
+      const results = (data?.features || []).map((f: any) => ({
+        display_name: [f.properties.name, f.properties.city, f.properties.state, f.properties.country].filter(Boolean).join(", "),
+        lat: f.geometry.coordinates[1],
+        lon: f.geometry.coordinates[0],
+      }));
+      setSearchResults(results);
     } catch {
       toast.error("Search failed");
     } finally {
