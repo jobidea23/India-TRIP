@@ -9,18 +9,21 @@ export async function GET(request: Request) {
 
   try {
     if (reverse && lat && lon) {
-      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`, {
-        headers: { "User-Agent": "IndiaTrip/1.0", "Accept-Language": "en" },
-      });
+      const res = await fetch(`https://photon.komoot.io/reverse?lat=${lat}&lon=${lon}&limit=1`);
       const data = await res.json();
-      return NextResponse.json({ display_name: data.display_name || "Selected location" });
+      const f = data?.features?.[0];
+      const addr = f ? [f.properties.name, f.properties.city, f.properties.state, f.properties.country].filter(Boolean).join(", ") : "Selected location";
+      return NextResponse.json({ display_name: addr });
     }
     if (q) {
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=8&addressdetails=1`, {
-        headers: { "User-Agent": "IndiaTrip/1.0", "Accept-Language": "en" },
-      });
+      const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=8`);
       const data = await res.json();
-      return NextResponse.json(data);
+      const results = (data?.features || []).map((f: any) => ({
+        display_name: [f.properties.name, f.properties.city, f.properties.state, f.properties.country].filter(Boolean).join(", "),
+        lat: f.geometry.coordinates[1],
+        lon: f.geometry.coordinates[0],
+      }));
+      return NextResponse.json(results);
     }
     return NextResponse.json([]);
   } catch (e) {
