@@ -71,9 +71,23 @@ export default function CustomerHome() {
       if (!ok || !mapRef.current) return;
       const g = (window as any).google;
       const center = location || { lat: 28.6139, lng: 77.209 };
-      const map = new g.maps.Map(mapRef.current, { center, zoom: 13 });
+      const map = new g.maps.Map(mapRef.current, { center, zoom: 15, gestureHandling: "greedy" });
       mapInstance.current = map;
       directionsRenderer.current = new g.maps.DirectionsRenderer({ map, suppressMarkers: false });
+
+      // Center pin reverse-geocode on map idle (Rapido-style)
+      map.addListener("idle", () => {
+        const c = map.getCenter();
+        if (!c) return;
+        const loc = { lat: c.lat(), lng: c.lng() };
+        const geocoder = new g.maps.Geocoder();
+        geocoder.geocode({ location: loc }, (results: any, status: string) => {
+          const addr = (status === "OK" && results && results[0]) ? results[0].formatted_address : "Selected location";
+          const cur = selecting;
+          if (cur === "pickup") setPickup({ address: addr, location: loc });
+          else setDestination({ address: addr, location: loc });
+        });
+      });
 
       // Autocomplete (legacy Places) — only if available
       if (g.maps.places && g.maps.places.Autocomplete) {
@@ -83,7 +97,9 @@ export default function CustomerHome() {
             pickupAutoRef.current.addListener("place_changed", () => {
               const place = pickupAutoRef.current.getPlace();
               if (place.geometry) {
-                setPickup({ address: place.formatted_address || place.name, location: { lat: place.geometry.location.lat(), lng: place.geometry.location.lng() } });
+                const loc = { lat: place.geometry.location.lat(), lng: place.geometry.location.lng() };
+                setPickup({ address: place.formatted_address || place.name, location: loc });
+                if (mapInstance.current) mapInstance.current.setCenter(loc);
               }
             });
           } catch (e) { console.warn("Places autocomplete unavailable", e); }
@@ -94,7 +110,9 @@ export default function CustomerHome() {
             destAutoRef.current.addListener("place_changed", () => {
               const place = destAutoRef.current.getPlace();
               if (place.geometry) {
-                setDestination({ address: place.formatted_address || place.name, location: { lat: place.geometry.location.lat(), lng: place.geometry.location.lng() } });
+                const loc = { lat: place.geometry.location.lat(), lng: place.geometry.location.lng() };
+                setDestination({ address: place.formatted_address || place.name, location: loc });
+                if (mapInstance.current) mapInstance.current.setCenter(loc);
               }
             });
           } catch (e) { console.warn("Places autocomplete unavailable", e); }
@@ -181,6 +199,7 @@ export default function CustomerHome() {
     navigator.geolocation.getCurrentPosition(async (pos) => {
       const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
       setLocation(loc);
+      if (mapInstance.current) mapInstance.current.setCenter(loc);
       if (isMapsConfigured() && (window as any).google) {
         const g = (window as any).google;
         const geocoder = new g.maps.Geocoder();
@@ -261,7 +280,20 @@ export default function CustomerHome() {
   return (
     <div className="relative h-[calc(100vh-56px)]">
       {/* Map area */}
-      <div className="absolute inset-0 bg-gray-200" ref={mapRef} />
+      <div className="absolute inset-0 bg-gray-200">
+        <div ref={mapRef} className="w-full h-full" />
+        {/* Center pin (Rapido-style) */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full z-10 pointer-events-none animate-bounce">
+          <svg width="40" height="50" viewBox="0 0 40 50" fill="none">
+            <path d="M20 0 C9 0 0 9 0 20 C0 35 20 50 20 50 C20 50 40 35 40 20 C40 9 31 0 20 0 Z" fill={selecting === "pickup" ? "#16A34A" : "#2563EB"} />
+            <circle cx="20" cy="20" r="8" fill="white" />
+            <circle cx="20" cy="20" r="4" fill={selecting === "pickup" ? "#16A34A" : "#2563EB"} />
+          </svg>
+        </div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 translate-y-2 z-10 pointer-events-none">
+          <div className="w-3 h-3 bg-black/30 rounded-full blur-sm" />
+        </div>
+      </div>
 
       {/* Top search bar */}
       <div className="absolute top-3 left-3 right-3 z-20">
