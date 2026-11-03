@@ -17,9 +17,16 @@ service cloud.firestore {
       allow write: if isAdmin() || (isSignedIn() && request.resource.data.driverId == request.auth.uid);
     }
     match /bookings/{id} {
-      allow read: if isSignedIn() && (resource.data.customerId == request.auth.uid || resource.data.driverId == request.auth.uid || isAdmin());
+      // Any signed-in user can read searching bookings (so drivers can see & accept them)
+      allow read: if isSignedIn() && (resource.data.status == 'searching' || resource.data.customerId == request.auth.uid || resource.data.driverId == request.auth.uid || isAdmin());
+      // Customer creates booking
       allow create: if isSignedIn() && request.resource.data.customerId == request.auth.uid;
-      allow update: if isSignedIn() && (resource.data.customerId == request.auth.uid || resource.data.driverId == request.auth.uid || isAdmin());
+      // Driver can accept (update status from searching to assigned), customer/driver/admin can update
+      allow update: if isSignedIn() && (resource.data.status == 'searching' || resource.data.customerId == request.auth.uid || resource.data.driverId == request.auth.uid || isAdmin());
+    }
+    match /bookingSecrets/{id} {
+      allow read: if isSignedIn() && (resource.data.customerId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn();
     }
     match /payments/{id} {
       allow read: if isSignedIn() && (resource.data.customerId == request.auth.uid || isAdmin());

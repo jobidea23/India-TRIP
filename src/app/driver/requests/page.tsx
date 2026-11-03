@@ -66,7 +66,8 @@ export default function RideRequests() {
           <div className="flex justify-between items-start">
             <div>
               <Badge color="blue">{r.category}</Badge>
-              <div className="font-bold text-brand-navy mt-1">{r.customerName || r.customerId}</div>
+              <div className="font-bold text-brand-navy mt-1">{r.customerName || "Customer"}</div>
+              {r.customerPhone && <div className="text-xs text-gray-500">📞 {r.customerPhone}</div>}
             </div>
             <div className="text-right">
               <div className="font-bold text-brand-green">₹{r.fare}</div>
