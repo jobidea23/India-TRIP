@@ -54,6 +54,10 @@ export default function DriverAuth() {
         toast.success("Signed in: " + (u.displayName || ""));
       } catch (e: any) {
         console.error("Popup sign-in error:", e?.code, e?.message);
+        if (e?.code === "auth/unauthorized-domain") {
+          toast.error("Domain not authorized in Firebase. Add this domain to Firebase Auth → Authorized domains.");
+          return;
+        }
         if (e?.code !== "auth/cancelled-popup-request") {
           toast("Popup nahi khula, redirect use kar rahe hain...");
           await signInWithRedirect(auth, provider);

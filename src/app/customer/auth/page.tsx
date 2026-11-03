@@ -64,7 +64,13 @@ export default function CustomerAuth() {
         await handleUser(result.user);
       } catch (e: any) {
         console.error("Popup sign-in error:", e?.code, e?.message);
-        // Fallback to redirect for any popup issue (blocked, closed, unauthorized domain, etc.)
+        // If domain not authorized, show clear error
+        if (e?.code === "auth/unauthorized-domain") {
+          toast.error("Domain not authorized in Firebase. Add this domain to Firebase Auth → Authorized domains.");
+          setLoading(false);
+          return;
+        }
+        // Fallback to redirect for any popup issue (blocked, closed, etc.)
         if (e?.code !== "auth/cancelled-popup-request") {
           toast("Popup nahi khula, redirect use kar rahe hain...");
           await signInWithRedirect(auth, provider);
