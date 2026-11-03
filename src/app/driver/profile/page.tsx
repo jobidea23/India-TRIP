@@ -3,13 +3,16 @@ import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import { useAppStore } from "@/store/useAppStore";
+import { useHydrated } from "@/hooks/useHydrated";
 import { LogOut } from "lucide-react";
 
 export default function DriverProfile() {
   const router = useRouter();
+  const hydrated = useHydrated();
   const driver = useAppStore((s) => s.driver);
   const setDriver = useAppStore((s) => s.setDriver);
   const setRole = useAppStore((s) => s.setRole);
+  if (!hydrated) return <div className="p-4 text-center text-gray-500">Loading...</div>;
   if (!driver) return null;
   return (
     <div className="p-4 space-y-4">

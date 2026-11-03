@@ -1,9 +1,12 @@
 "use client";
 import Card from "@/components/ui/Card";
 import { useAppStore } from "@/store/useAppStore";
+import { useHydrated } from "@/hooks/useHydrated";
 
 export default function Earnings() {
+  const hydrated = useHydrated();
   const driver = useAppStore((s) => s.driver);
+  if (!hydrated) return <div className="p-4 text-center text-gray-500">Loading...</div>;
   if (!driver) return null;
   return (
     <div className="p-4 space-y-4">

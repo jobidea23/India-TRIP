@@ -6,17 +6,23 @@ import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
 import { useAppStore } from "@/store/useAppStore";
+import { useHydrated } from "@/hooks/useHydrated";
 import { listenSearchingBookings, acceptBooking } from "@/lib/firestore";
 import toast from "react-hot-toast";
 
 export default function RideRequests() {
   const router = useRouter();
+  const hydrated = useHydrated();
   const driver = useAppStore((s) => s.driver);
   const setActiveBooking = useAppStore((s) => s.setActiveBooking);
   const [requests, setRequests] = useState<any[]>([]);
 
   useEffect(() => {
-    if (!driver?.vehicle?.category) return;
+    if (hydrated && !driver) router.replace("/driver/auth");
+  }, [hydrated, driver, router]);
+
+  useEffect(() => {
+    if (!hydrated || !driver?.vehicle?.category) return;
     const unsub = listenSearchingBookings(driver.vehicle.category, (list) => {
       setRequests(list);
     });
@@ -41,6 +47,7 @@ export default function RideRequests() {
     toast("Request declined");
   };
 
+  if (!hydrated) return <div className="p-4 text-center text-gray-500">Loading...</div>;
   if (!driver) return null;
   if (driver.status !== "approved") {
     return (

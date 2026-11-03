@@ -7,18 +7,23 @@ import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
 import { useAppStore } from "@/store/useAppStore";
 import { useLocationTracking } from "@/hooks/useLocationTracking";
+import { useHydrated } from "@/hooks/useHydrated";
 import toast from "react-hot-toast";
 
 export default function DriverHome() {
   useLocationTracking(true);
   const router = useRouter();
+  const hydrated = useHydrated();
   const driver = useAppStore((s) => s.driver);
   const setDriver = useAppStore((s) => s.setDriver);
   const [online, setOnline] = useState(driver?.online || false);
 
   useEffect(() => {
-    if (!driver) router.replace("/driver/auth");
-  }, [driver, router]);
+    if (hydrated && !driver) router.replace("/driver/auth");
+  }, [hydrated, driver, router]);
+
+  if (!hydrated) return <div className="p-4 text-center text-gray-500">Loading...</div>;
+  if (!driver) return null;
 
   if (!driver) return null;
 

@@ -4,9 +4,11 @@ import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
 import { IndianRupee, MapPin, Navigation, Clock } from "lucide-react";
 import { useAppStore } from "@/store/useAppStore";
+import { useHydrated } from "@/hooks/useHydrated";
 import { listBookings } from "@/lib/firestore";
 
 export default function DriverTrips() {
+  const hydrated = useHydrated();
   const driver = useAppStore((s) => s.driver);
   const [trips, setTrips] = useState<any[]>([]);
 
@@ -25,6 +27,8 @@ export default function DriverTrips() {
 
   const total = trips.reduce((s, t) => s + (t.fare || 0), 0);
   const earned = Math.round(total * 0.85);
+
+  if (!hydrated) return <div className="p-4 text-center text-gray-500">Loading...</div>;
 
   return (
     <div className="p-4 space-y-4">

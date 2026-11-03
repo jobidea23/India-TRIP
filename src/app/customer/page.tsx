@@ -10,6 +10,7 @@ import { useAppStore } from "@/store/useAppStore";
 import { calculateFare, estimateDuration, isNightTime } from "@/lib/fare";
 import { haversineKm } from "@/lib/googleMaps";
 import { useLocationTracking } from "@/hooks/useLocationTracking";
+import { useHydrated } from "@/hooks/useHydrated";
 import { createBooking, listenBooking, getFareSettings } from "@/lib/firestore";
 import LeafletMap from "@/components/maps/LeafletMap";
 import toast from "react-hot-toast";
@@ -23,6 +24,7 @@ const CATS = [
 export default function CustomerHome() {
   useLocationTracking(true);
   const router = useRouter();
+  const hydrated = useHydrated();
   const user = useAppStore((s) => s.user);
   const location = useAppStore((s) => s.location);
   const setLocation = useAppStore((s) => s.setLocation);
@@ -178,6 +180,7 @@ export default function CustomerHome() {
     }
   };
 
+  if (!hydrated) return <div className="p-4 text-center text-gray-500">Loading...</div>;
   if (!user) return null;
 
   const markers = [

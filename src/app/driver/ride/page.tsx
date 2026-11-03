@@ -6,6 +6,7 @@ import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import { useAppStore } from "@/store/useAppStore";
+import { useHydrated } from "@/hooks/useHydrated";
 import { listenBooking, updateBooking, verifyOtpClient, pushDriverLocation, listenDriverLocation } from "@/lib/firestore";
 import { useLocationTracking } from "@/hooks/useLocationTracking";
 import toast from "react-hot-toast";
@@ -13,6 +14,7 @@ import toast from "react-hot-toast";
 export default function ActiveRide() {
   useLocationTracking(true);
   const router = useRouter();
+  const hydrated = useHydrated();
   const bookingStore = useAppStore((s) => s.activeBooking);
   const setActiveBooking = useAppStore((s) => s.setActiveBooking);
   const driver = useAppStore((s) => s.driver);
@@ -48,6 +50,7 @@ export default function ActiveRide() {
     }
   }, [driver?.id]);
 
+  if (!hydrated) return <div className="p-4 text-center text-gray-500">Loading...</div>;
   if (!booking) {
     return (
       <div className="p-4">
