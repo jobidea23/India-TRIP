@@ -61,15 +61,20 @@ export default function ActiveRide() {
 
   const verifyOtp = async () => {
     if (attempts >= 3) { toast.error("Too many attempts. Ride cancelled."); await updateBooking(booking.id, { status: "cancelled", cancelledBy: "system" }); return; }
-    const ok = await verifyOtpClient(booking.id, otp, booking.customerId);
-    if (!ok) {
-      setAttempts((a) => a + 1);
-      toast.error("Invalid OTP. Ask customer.");
-      return;
+    try {
+      const ok = await verifyOtpClient(booking.id, otp, booking.customerId);
+      if (!ok) {
+        setAttempts((a) => a + 1);
+        toast.error("Invalid OTP. Ask customer for correct code.");
+        return;
+      }
+      await updateBooking(booking.id, { otpVerified: true, status: "started", startedAt: Date.now() });
+      setStarted(true);
+      toast.success("OTP verified. Trip started!");
+    } catch (e: any) {
+      console.error("OTP verify error:", e);
+      toast.error(e?.message || "Verification failed. Check permissions.");
     }
-    await updateBooking(booking.id, { otpVerified: true, status: "started", startedAt: Date.now() });
-    setStarted(true);
-    toast.success("OTP verified. Trip started!");
   };
 
   const complete = async () => {

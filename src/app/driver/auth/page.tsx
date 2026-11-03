@@ -68,15 +68,16 @@ export default function DriverAuth() {
   const register = () => {
     if (!form.name || !phone || !form.vehicleNumber) { toast.error("Fill all fields"); return; }
     if (!/^\d{10}$/.test(phone)) { toast.error("Enter valid 10-digit phone"); return; }
+    const uid = gUser?.uid || ("demo_" + phone);
     const driver = {
-      id: "drv_" + (gUser?.uid || phone),
+      id: uid,
       phone,
       name: form.name,
       email: gUser?.email || "",
       photoURL: gUser?.photoURL || "",
       status: "approved" as const,
       online: false,
-      vehicle: { id: "v_" + phone, driverId: "drv_" + (gUser?.uid || phone), category: form.category as any, number: form.vehicleNumber },
+      vehicle: { id: "v_" + phone, driverId: uid, category: form.category as any, number: form.vehicleNumber },
       rating: 4.8,
       completedRides: 0,
       earnings: { daily: 0, weekly: 0, monthly: 0 },
