@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged } from "firebase/auth";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Logo from "@/components/ui/Logo";
@@ -37,12 +37,25 @@ export default function CustomerAuth() {
     else router.push("/customer");
   };
 
-  // Handle redirect result (mobile / popup-blocked fallback)
+  // Handle redirect result + auth state changes (PC popup-blocked fallback)
   useEffect(() => {
     if (!auth) return;
+    // Check redirect result first
     getRedirectResult(auth).then((result) => {
       if (result?.user) handleUser(result.user);
-    }).catch((e) => { if (e?.code !== "auth/popup-closed-by-user") toast.error(e?.message || "Login failed"); });
+    }).catch((e) => {
+      console.error("Redirect result error:", e?.code, e?.message);
+      if (e?.code === "auth/unauthorized-domain") {
+        toast.error("Domain not authorized. Add indiatripnow.vercel.app to Firebase Auth → Authorized domains.");
+      } else if (e?.code !== "auth/popup-closed-by-user" && e?.code !== "auth/cancelled-popup-request") {
+        toast.error(e?.message || "Login failed");
+      }
+    });
+    // Also listen for auth state changes (catches redirect login)
+    const unsubscribe = onAuthStateChanged(auth, (u) => {
+      if (u) handleUser(u);
+    });
+    return () => unsubscribe();
   }, []);
 
   const googleLogin = async () => {
