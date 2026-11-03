@@ -6,7 +6,7 @@ import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import { useAppStore } from "@/store/useAppStore";
 import { haversineKm } from "@/lib/googleMaps";
-import MapView from "@/components/maps/MapView";
+import LeafletMap from "@/components/maps/LeafletMap";
 import { useDriverLocation } from "@/hooks/useLocationTracking";
 import toast from "react-hot-toast";
 
@@ -35,21 +35,14 @@ export default function TrackRide() {
       <Card className="p-4">
         <h2 className="font-bold text-brand-navy">Live Tracking</h2>
         <div className="mt-3 h-48 rounded-xl overflow-hidden">
-          <MapView
+          <LeafletMap
+            center={driverLoc || booking.pickup.location}
             markers={[
               { lat: booking.pickup.location.lat, lng: booking.pickup.location.lng, label: "Pickup" },
               { lat: booking.destination.location.lat, lng: booking.destination.location.lng, label: "Drop" },
               ...(driverLoc ? [{ lat: driverLoc.lat, lng: driverLoc.lng, label: "Driver" }] : []),
             ]}
             className="w-full h-full"
-            fallback={
-              <div className="w-full h-full bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center">
-                <div className="text-center">
-                  <MapPin className="mx-auto text-brand-green" size={32} />
-                  <p className="text-xs text-gray-500 mt-1">Live map (demo mode)</p>
-                </div>
-              </div>
-            }
           />
         </div>
         <div className="mt-3 space-y-2 text-sm">
