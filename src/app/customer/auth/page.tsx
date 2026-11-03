@@ -83,19 +83,19 @@ export default function CustomerAuth() {
   };
 
   return (
-    <div className="min-h-screen bg-brand-light flex items-center justify-center px-4 relative overflow-hidden">
-      <div className="absolute top-0 left-0 w-96 h-96 bg-brand-green/10 rounded-full blur-3xl animate-float" />
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-brand-blue/10 rounded-full blur-3xl animate-float" style={{ animationDelay: "1s" }} />
-      <Card className="w-full max-w-md p-8 text-center relative z-10 animate-scale-in shadow-2xl">
-        <div className="animate-float">
-          <Logo />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-green-50 flex items-center justify-center px-4 relative overflow-hidden">
+      <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-brand-green/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
+      <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-brand-blue/10 rounded-full blur-3xl translate-x-1/3 translate-y-1/3" />
+      <Card className="w-full max-w-md p-10 text-center relative z-10 animate-scale-in shadow-2xl border-0">
+        <div className="animate-float mb-6">
+          <Logo size={48} />
         </div>
-        <h2 className="text-2xl font-bold text-brand-navy mt-6 mb-1">Welcome to INDIA TRIP</h2>
-        <p className="text-sm text-gray-500 mb-8">Sign in with Google to continue</p>
-        <Button className="w-full btn-ripple py-4 text-lg" onClick={googleLogin} disabled={loading}>
-          {loading ? "Signing in..." : "Sign in with Google"}
+        <h2 className="text-3xl font-black text-brand-navy mb-2">Welcome Back</h2>
+        <p className="text-sm text-gray-500 mb-8">Sign in with Google to book your ride</p>
+        <Button className="w-full btn-ripple py-4 text-lg rounded-2xl shadow-lg" onClick={googleLogin} disabled={loading}>
+          {loading ? "Signing in..." : "Continue with Google"}
         </Button>
-        <p className="text-xs text-gray-400 mt-4">If popup is blocked, you will be redirected to Google automatically.</p>
+        <p className="text-xs text-gray-400 mt-6">By signing in, you agree to our Terms & Privacy Policy.</p>
       </Card>
     </div>
   );
