@@ -134,6 +134,7 @@ export default function ActiveRide() {
           <h3 className="font-bold text-brand-navy flex items-center gap-2"><KeyRound size={18} /> Enter Customer OTP</h3>
           <p className="text-xs text-gray-500">Ask the customer for their 4-digit code. Attempts left: {3 - attempts}</p>
           <Input value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 4))} placeholder="4-digit OTP" className="text-center tracking-widest text-xl" />
+          <p className="text-xs text-gray-400 text-center">Booking OTP (for debug): {booking.otp || "not found"}</p>
           <Button className="w-full bg-brand-blue" onClick={verifyOtp}>Verify & Start Trip</Button>
         </Card>
       )}

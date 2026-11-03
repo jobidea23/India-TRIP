@@ -83,9 +83,19 @@ export default function RideRequests() {
           <div className="text-4xl mb-3">🔍</div>
           <p className="text-gray-500 font-medium">No ride requests right now</p>
           <p className="text-xs text-gray-400 mt-2">Waiting for new bookings... (real-time)</p>
-          <p className="text-xs text-gray-400 mt-1">Make sure customer booked a {driver.vehicle?.category || ""} ride.</p>
+          <p className="text-xs text-gray-400 mt-1">Driver category: <span className="font-semibold">{driver.vehicle?.category || "none"}</span></p>
+          <p className="text-xs text-amber-600 mt-2">⚠️ Make sure: Firestore rules deployed, customer booked same category ride.</p>
         </Card>
       )}
+
+      {/* Debug info */}
+      <Card className="p-3 bg-gray-50 text-xs text-gray-500">
+        <div>Driver ID: {driver.id}</div>
+        <div>Category: {driver.vehicle?.category || "none"}</div>
+        <div>Online: {driver.online ? "Yes" : "No"}</div>
+        <div>Requests found: {requests.length}</div>
+        {error && <div className="text-red-600">Error: {error}</div>}
+      </Card>
 
       {requests.map((r) => (
         <Card key={r.id} className="p-5 space-y-4 border-2 border-brand-blue/20 hover:border-brand-blue/40 transition">
