@@ -63,7 +63,7 @@ export default function CustomerHome() {
   // Reverse geocode center via Nominatim (free)
   const reverseGeocode = async (loc: { lat: number; lng: number }) => {
     try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${loc.lat}&lon=${loc.lng}&zoom=18&addressdetails=1`, { headers: { "Accept-Language": "en" } });
+      const res = await fetch(`/api/geocode?reverse=1&lat=${loc.lat}&lon=${loc.lng}`);
       const data = await res.json();
       return data.display_name || "Selected location";
     } catch {
@@ -84,9 +84,9 @@ export default function CustomerHome() {
     if (!searchQuery.trim()) return;
     setSearchingPlace(true);
     try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=8&addressdetails=1`, { headers: { "Accept-Language": "en" } });
+      const res = await fetch(`/api/geocode?q=${encodeURIComponent(searchQuery)}`);
       const data = await res.json();
-      setSearchResults(data);
+      setSearchResults(Array.isArray(data) ? data : []);
     } catch {
       toast.error("Search failed");
     } finally {
