@@ -81,9 +81,15 @@ export function listenBooking(bookingId: string, cb: (b: any) => void) {
 
 export function listenSearchingBookings(category: string, cb: (list: any[]) => void) {
   if (!db) return () => {};
-  const q = query(collection(db, collections.bookings), where("status", "==", "searching"), where("category", "==", category));
+  // Only filter by status (avoids composite index requirement); filter by category client-side
+  const q = query(collection(db, collections.bookings), where("status", "==", "searching"));
   return onSnapshot(q, (snap) => {
-    cb(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+    const all = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    const filtered = category ? all.filter((b: any) => b.category === category) : all;
+    cb(filtered);
+  }, (err) => {
+    console.error("listenSearchingBookings error:", err);
+    cb([]);
   });
 }
 
