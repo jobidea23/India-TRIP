@@ -109,6 +109,14 @@ export default function ActiveRide() {
           <div className="flex items-center gap-2"><Navigation size={14} className="text-brand-blue" /> {booking.destination?.address}</div>
           <div className="flex justify-between"><span>Fare</span><span className="font-bold text-brand-green">₹{booking.fare}</span></div>
           <div className="flex justify-between"><span>Payment</span><span>{booking.paymentMethod} ({booking.paymentStatus})</span></div>
+          {booking.customerPhone && (
+            <div className="flex justify-between items-center">
+              <span>Customer</span>
+              <a href={`tel:${booking.customerPhone}`} className="font-semibold text-brand-blue flex items-center gap-1">
+                📞 {booking.customerPhone}
+              </a>
+            </div>
+          )}
         </div>
       </Card>
 
