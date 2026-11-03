@@ -53,7 +53,9 @@ export default function DriverAuth() {
         setStep("register");
         toast.success("Signed in: " + (u.displayName || ""));
       } catch (e: any) {
-        if (e?.code === "auth/popup-blocked" || e?.code === "auth/popup-closed-by-user") {
+        console.error("Popup sign-in error:", e?.code, e?.message);
+        if (e?.code !== "auth/cancelled-popup-request") {
+          toast("Popup nahi khula, redirect use kar rahe hain...");
           await signInWithRedirect(auth, provider);
         } else {
           throw e;

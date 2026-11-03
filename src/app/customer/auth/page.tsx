@@ -63,8 +63,10 @@ export default function CustomerAuth() {
         const result = await signInWithPopup(auth, provider);
         await handleUser(result.user);
       } catch (e: any) {
-        if (e?.code === "auth/popup-blocked" || e?.code === "auth/popup-closed-by-user") {
-          // Fallback to redirect (works on mobile / popup blockers)
+        console.error("Popup sign-in error:", e?.code, e?.message);
+        // Fallback to redirect for any popup issue (blocked, closed, unauthorized domain, etc.)
+        if (e?.code !== "auth/cancelled-popup-request") {
+          toast("Popup nahi khula, redirect use kar rahe hain...");
           await signInWithRedirect(auth, provider);
         } else {
           throw e;
